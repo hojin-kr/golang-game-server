@@ -1,0 +1,35 @@
+version: "3.7"
+
+services:
+  # Go lang
+  app:
+    # image: hojindev/gamejam:1.0.0
+    image: golang:1.14
+    volumes:
+     - ./:/home/app
+    working_dir: /home/app
+    ports:
+     - "8888:8888"
+    command: "go build -v"
+    command: "nohup go run main.go &"
+  # Relation Database
+  # sqldb:
+  #   image: mysql:5.7
+  #   # Using named volumn (persistencse data store)
+  #   volumes:
+  #    - sqldb:/var/lib/mysql
+  #    - ./db:/tmp/mydb
+  #   environment:
+  #    MYSQL_ROOT_PASSWORD: 1q2w3e4r
+  #   # command: "mysql -uroot -p1q2w3e4r < /tmp/mydb/dump.sql"
+  redis:
+    image: redis:4.0.9
+    volumes:
+     - redis:/data
+  # Connecting vi redis-cli
+  # docker run -it --network some-network --rm redis redis-cli -h some-redis
+
+# def named volumn (persistencse data store)
+volumes:
+  # sqldb:
+  redis:
