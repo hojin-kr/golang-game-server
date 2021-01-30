@@ -18,6 +18,7 @@ type User struct {
 	ID         int    `json:"id"`
 	PlatformID string `json:"platform_id" binding:"required"`
 	Platform   string `json:"platform" binding:"required"`
+	DeviceID  string `json:"device_id"`
 }
 
 // Login user return game id
@@ -27,11 +28,11 @@ func Login(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request")
 		return
 	}
-	row := db.QueryRow("SELECT id, platform_id, platform from user where platform_id = ? AND platform = ?", user.PlatformID, user.Platform)
-	row.Scan(&user.ID, &user.Platform, &user.PlatformID)
-	if !(user.ID > 0) {
+	row := db.QueryRow("SELECT id, platform_id, platform, device_id from user where platform_id = ? AND platform = ?", user.PlatformID, user.Platform)
+	row.Scan(&user.ID, &user.PlatformID, &user.Platform, &user.DeviceID)
+	if user.ID == 0 {
 		// sign up
-		rs, err := db.Exec("INSERT INTO user(platform_id, platform) VALUES (?, ?)", user.PlatformID, user.Platform)
+		rs, err := db.Exec("INSERT INTO user(platform_id, platform, device_id) VALUES (?, ?, ?)", user.PlatformID, user.Platform, user.DeviceID)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -47,7 +48,7 @@ func Login(c *gin.Context) {
 func main() {
 	// database
 	var err error
-	db, err = sql.Open("mysql", "dev:dev@tcp(127.0.0.1:3306)/user")
+	db, err = sql.Open("mysql", "USER:PASWORD@tcp(127.0.0.1:3306)/user")
 	if err != nil {
 		log.Println(err)
 	}
