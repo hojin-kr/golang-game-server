@@ -44,6 +44,35 @@ func Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, user)
 }
+// ChangePlatfrom change platform
+func ChangePlatfrom(c *gin.Context)  {
+	var user User
+	if err := c.ShouldBind(&user); err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+		return
+	}
+	if user.ID != 0 {
+		// 검증
+		if(!checkDeviceID(user.ID, user.DeviceID)) {
+			c.JSON(http.StatusBadRequest, user)
+		}
+		rs, err := db.Exec("UPDATE TABLE user SET platfrom_id = ?, platfrom = ? WHERE id = ?", user.PlatformID, user.Platform, user.ID)
+		if err != nil || rs == nil {
+			log.Fatalln(err)
+		}
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+func checkDeviceID(ID int, DeviceID string) (bool) {
+	var _DeviceID string
+	row := db.QueryRow("SELECT device_id from user where id = ?", ID)
+	row.Scan(&_DeviceID)
+	if(_DeviceID != DeviceID) {
+		return false
+	}
+	return true
+}
 
 func main() {
 	// database
@@ -63,5 +92,6 @@ func main() {
 	})
 	// sign up or sign in return game id
 	r.POST("/login", Login)
+	r.POST("/changeplatfrom", ChangePlatfrom)
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
