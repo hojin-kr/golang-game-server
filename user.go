@@ -52,18 +52,15 @@ func ChangePlatfrom(c *gin.Context)  {
 		return
 	}
 	if user.ID != 0 {
-		// 검증
-		if(!checkDeviceID(user.ID, user.DeviceID)) {
-			c.JSON(http.StatusBadRequest, user)
-		}
-		rs, err := db.Exec("UPDATE TABLE user SET platfrom_id = ?, platfrom = ? WHERE id = ?", user.PlatformID, user.Platform, user.ID)
+		rs, err := db.Exec("UPDATE user SET platform_id = ?, platform = ? WHERE id = ? AND device_id = ?", user.PlatformID, user.Platform, user.ID, user.DeviceID)
 		if err != nil || rs == nil {
-			log.Fatalln(err)
+			c.JSON(http.StatusBadRequest, err)
+			return
 		}
 	}
 	c.JSON(http.StatusOK, user)
 }
-
+// checkDeviceID 입력받은 디바이스 아이디가 유효한지 확인
 func checkDeviceID(ID int, DeviceID string) (bool) {
 	var _DeviceID string
 	row := db.QueryRow("SELECT device_id from user where id = ?", ID)
