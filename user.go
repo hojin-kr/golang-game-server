@@ -7,8 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"context"
+	"strconv"
 )
 
 const port string = ":8888"
@@ -18,8 +19,8 @@ var ctx = context.Background()
 // User basic info
 type User struct {
 	ID         int    `json:"id"`
-	PlatformID string `json:"platform_id" binding:"required"`
-	Platform   string `json:"platform" binding:"required"`
+	PlatformID string `json:"platform_id"`
+	Platform   string `json:"platform"`
 	DeviceID  string `json:"device_id"`
 }
 
@@ -44,7 +45,6 @@ func Login(c *gin.Context) {
 		}
 		user.ID = int(id)
 	}
-	setScore()
 	c.JSON(http.StatusOK, user)
 }
 // ChangePlatfrom change platform
@@ -73,16 +73,23 @@ func checkDeviceID(ID int, DeviceID string) (bool) {
 	}
 	return true
 }
-func setScore() {
+func incrScore(c *gin.Context) {
+	var user User
+	if err := c.ShouldBind(&user); err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+		return
+	}
 	rdb := redis.NewClient(&redis.Options{
 		Addr:	"localhost:6379",
 		Password: "",
 		DB:	0,
 	})
-	err := rdb.Set(ctx, "key", "value", 0).Err()
+	err := rdb.ZIncrBy(ctx, "rank", 1, strconv.Itoa(user.ID)).Err()
+	// err := rdb.Set(ctx, user., "value", 0).Err()
 	if err != nil {
 		panic(err)
 	}
+	c.JSON(http.StatusOK, user)
 }
 
 func main() {
@@ -104,5 +111,6 @@ func main() {
 	// sign up or sign in return game id
 	r.POST("/login", Login)
 	r.POST("/changeplatfrom", ChangePlatfrom)
+	r.POST("/incrscore", incrScore)
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
