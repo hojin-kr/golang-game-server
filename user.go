@@ -7,13 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis"
 )
 
 const port string = ":8888"
 
 var db *sql.DB
-var ctx = context.Background()
 
 // User basic info
 type User struct {
@@ -44,7 +43,7 @@ func Login(c *gin.Context) {
 		}
 		user.ID = int(id)
 	}
-	setScore()
+	setScore(c)
 	c.JSON(http.StatusOK, user)
 }
 // ChangePlatfrom change platform
@@ -73,13 +72,13 @@ func checkDeviceID(ID int, DeviceID string) (bool) {
 	}
 	return true
 }
-func setScore() {
-	rdb := redis.NewClient(&redis.Option{
+func setScore(c *gin.Context) {
+	rdb := redis.NewClient(&redis.Options{
 		Addr:	"localhost:6379",
 		Password: "",
 		DB:	0,
 	})
-	err := rdb.Set(ctx, "key", "value", 0).Err()
+	err := rdb.Set(c, "key", "value", 0).Err()
 	if err != nil {
 		panic(err)
 	}
