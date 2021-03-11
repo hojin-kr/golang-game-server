@@ -23,6 +23,12 @@ type User struct {
 	Platform   string `json:"platform"`
 	DeviceID  string `json:"device_id"`
 }
+// Rank rank info
+type Rank struct {
+	ID int `json:"id"`
+	Score float64 `json:"score"`
+	Rank int64 `json:"rank"`
+}
 
 // Login user return game id
 func Login(c *gin.Context) {
@@ -74,8 +80,8 @@ func checkDeviceID(ID int, DeviceID string) (bool) {
 	return true
 }
 func incrScore(c *gin.Context) {
-	var user User
-	if err := c.ShouldBind(&user); err != nil {
+	var rank Rank
+	if err := c.ShouldBind(&rank); err != nil {
 		c.String(http.StatusBadRequest, "bad request")
 		return
 	}
@@ -84,18 +90,19 @@ func incrScore(c *gin.Context) {
 		Password: "",
 		DB:	0,
 	})
-	err := rdb.ZIncrBy(ctx, "rank", 1, strconv.Itoa(user.ID)).Err()
-	// err := rdb.Set(ctx, user., "value", 0).Err()
+	err := rdb.ZIncrBy(ctx, "rank", rank.Score, strconv.Itoa(rank.ID)).Err()
 	if err != nil {
 		panic(err)
 	}
-	c.JSON(http.StatusOK, user)
+	userRank := rdb.ZRank(ctx, "rank", strconv.Itoa(rank.ID))
+	rank.Rank = userRank.Val()
+	c.JSON(http.StatusOK, rank)
 }
 
 func main() {
 	// database
 	var err error
-	db, err = sql.Open("mysql", "USER:PASWORD@tcp(127.0.0.1:3306)/user")
+	db, err = sql.Open("mysql", "test:test@tcp(127.0.0.1:3306)/user")
 	if err != nil {
 		log.Println(err)
 	}
