@@ -94,9 +94,26 @@ func incrScore(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	userRank := rdb.ZRank(ctx, "rank", strconv.Itoa(rank.ID))
-	rank.Rank = userRank.Val()
+	userRank, err := rdb.ZRevRank(ctx, "rank", strconv.Itoa(rank.ID)).Result()
+	if err != nil {
+		panic(err)
+	}
+	rank.Rank = userRank
 	c.JSON(http.StatusOK, rank)
+}
+// getLeaderboard getLeaderboard
+func getLeaderboard(c *gin.Context) {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:	"localhost:6379",
+		Password: "",
+		DB:	0,
+	})
+	ranks, err := rdb.ZRevRangeWithScores(ctx, "rank", 0, 500).Result()
+	if err != nil {
+		panic(err)
+	}
+	log.Println(ranks)
+	c.JSON(http.StatusOK, ranks)
 }
 
 func main() {
@@ -110,6 +127,13 @@ func main() {
 	defer db.Close()
 	//router
 	r := gin.Default()
+	r.LoadHTMLFiles("templates/index.html")
+	r.Static("/static", "./static")
+	r.GET("/leaderboard", func(c *gin.Context) {
+					c.HTML(http.StatusOK, "index.html", gin.H{
+									"title": "Leaderboard",
+					})
+	})
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -119,5 +143,6 @@ func main() {
 	r.POST("/login", Login)
 	r.POST("/changeplatfrom", ChangePlatfrom)
 	r.POST("/incrscore", incrScore)
+	r.POST("/getleaderboard", getLeaderboard)
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
