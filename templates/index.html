@@ -33,7 +33,7 @@
   function leaderboard() {
     $.ajax({
         method: "POST",
-        url: "http://dev-hojin.shop:8888/getleaderboard"
+        url: "http://localhost:8888/getleaderboard"
       })
         .done(function( msg ) {
           rows = ""

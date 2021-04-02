@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  # Go lang
+  app:
+    image: golang:1.14
+    volumes:
+     - ./:/home/app
+    working_dir: /home/app
+    ports:
+     - "8888:8888"
+    command: "go build -v"
+    command: "nohup go run user.go &"
+  # Relation Database
+  rdb:
+    image: mysql:5.7
+    # Using named volumn (persistencse data store)
+    volumes:
+     - rdb:/var/lib/mysql
+    environment:
+     MYSQL_ROOT_PASSWORD: 1q2w3e4r
+    # command: "database init"
+  redis:
+    image: redis:4.0.9
+    volumes:
+     - redis:/data
+  # Connecting vi redis-cli
+  # docker run -it --network some-network --rm redis redis-cli -h some-redis
+
+# def named volumn (persistencse data store)
+volumes:
+  rdb:
+  redis:

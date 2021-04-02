@@ -86,7 +86,7 @@ func incrScore(c *gin.Context) {
 		return
 	}
 	rdb := redis.NewClient(&redis.Options{
-		Addr:	"localhost:6379",
+		Addr:	"redis:6379",
 		Password: "",
 		DB:	0,
 	})
@@ -104,7 +104,7 @@ func incrScore(c *gin.Context) {
 // getLeaderboard getLeaderboard
 func getLeaderboard(c *gin.Context) {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:	"localhost:6379",
+		Addr:	"redis:6379",
 		Password: "",
 		DB:	0,
 	})
@@ -119,7 +119,7 @@ func getLeaderboard(c *gin.Context) {
 func main() {
 	// database
 	var err error
-	db, err = sql.Open("mysql", "test:test@tcp(127.0.0.1:3306)/user")
+	db, err = sql.Open("mysql", "app:1q2w3e4r@tcp(rdb:3306)/user")
 	if err != nil {
 		log.Println(err)
 	}
