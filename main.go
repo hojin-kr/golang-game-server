@@ -30,6 +30,18 @@ type Rank struct {
 	Rank int64 `json:"rank"`
 }
 
+// Stage info stage
+type Stage struct {
+	ID	int	`json:"id"`
+}
+
+// StageInfo info StageInfo
+type StageInfo struct {
+	ID int `json:"id"`
+	Try float64 `json:"try"`
+	Clear float64 `json:"clear"`
+}
+
 // Login user return game id
 func Login(c *gin.Context) {
 	var user User
@@ -79,9 +91,17 @@ func checkDeviceID(ID int, DeviceID string) (bool) {
 	}
 	return true
 }
-func incrScore(c *gin.Context) {
-	var rank Rank
-	if err := c.ShouldBind(&rank); err != nil {
+
+// 1. 전체 중 클리어된 최고 층 (레디스에 memberId를 userId로하고 클리어할때마다 + 1) 
+// 2. 스테이지별 도전 횟수, 클리어 횟수
+// 2-1. 스테이지별로 redis stage stage:#:try, stage:#:clear stage별 도전 횟수, 클리어 횟수
+
+
+
+// startStage start stage
+func startStage(c *gin.Context) {
+	var stage Stage
+	if err := c.ShouldBind(&stage); err != nil {
 		c.String(http.StatusBadRequest, "bad request")
 		return
 	}
@@ -90,17 +110,76 @@ func incrScore(c *gin.Context) {
 		Password: "",
 		DB:	0,
 	})
-	err := rdb.ZIncrBy(ctx, "rank", rank.Score, strconv.Itoa(rank.ID)).Err()
+	err := rdb.ZIncrBy(ctx, "stage:try", 1, strconv.Itoa(stage.ID)).Err()
 	if err != nil {
 		panic(err)
 	}
-	userRank, err := rdb.ZRevRank(ctx, "rank", strconv.Itoa(rank.ID)).Result()
+	log.Println(stage.ID)
+	tryStages, err := rdb.ZRevRangeWithScores(ctx, "stage:try", 0, -1).Result()
 	if err != nil {
 		panic(err)
 	}
-	rank.Rank = userRank
-	c.JSON(http.StatusOK, rank)
+	c.JSON(http.StatusOK, tryStages)
 }
+
+// clearStage clear stage
+func clearStage(c *gin.Context) {
+	var stage Stage
+	if err := c.ShouldBind(&stage); err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+		return
+	}
+	log.Println(stage.ID)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:	"redis:6379",
+		Password: "",
+		DB:	0,
+	})
+	err := rdb.ZIncrBy(ctx, "stage:clear", 1, strconv.Itoa(stage.ID)).Err()
+	if err != nil {
+		panic(err)
+	}
+	// main rank incr
+	err2 := rdb.ZIncrBy(ctx, "rank", 1, strconv.Itoa(stage.ID)).Err()
+	if err2 != nil {
+		panic(err)
+	}
+	clearStages, err := rdb.ZRevRangeWithScores(ctx, "stage:clear", 0, -1).Result()
+	if err != nil {
+		panic(err)
+	}
+	c.JSON(http.StatusOK, clearStages)
+}
+
+// getStageInfo getStageInfo
+func getStageInfo(c *gin.Context) {
+	var stage Stage
+	if err := c.ShouldBind(&stage); err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+		return
+	}
+	log.Println(stage.ID)
+	redis := redis.NewClient(&redis.Options{
+		Addr:	"redis:6379",
+		Password: "",
+		DB:	0,
+	})
+	log.Println(stage.ID)
+	tryCnt, err := redis.ZScore(ctx, "stage:try", strconv.Itoa(stage.ID)).Result()
+	if err != nil {
+		tryCnt = 0
+	}
+	clearCnt, err2 := redis.ZScore(ctx, "stage:clear", strconv.Itoa(stage.ID)).Result()
+	if err2 != nil {
+		clearCnt = 0
+	}
+	var stageInfo StageInfo
+	stageInfo.ID = stage.ID
+	stageInfo.Try = tryCnt
+	stageInfo.Clear = clearCnt
+	c.JSON(http.StatusOK, stageInfo)
+}
+
 // getLeaderboard getLeaderboard
 func getLeaderboard(c *gin.Context) {
 	rdb := redis.NewClient(&redis.Options{
@@ -112,7 +191,6 @@ func getLeaderboard(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	log.Println(ranks)
 	c.JSON(http.StatusOK, ranks)
 }
 
@@ -142,7 +220,9 @@ func main() {
 	// sign up or sign in return game id
 	r.POST("/login", Login)
 	r.POST("/changeplatfrom", ChangePlatfrom)
-	r.POST("/incrscore", incrScore)
+	r.POST("/startstage", startStage)
+	r.POST("/clearstage", clearStage)
+	r.POST("/getstageinfo", getStageInfo)
 	r.POST("/getleaderboard", getLeaderboard)
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

@@ -10,7 +10,7 @@ services:
     ports:
      - "8888:8888"
     command: "go build -v"
-    command: "nohup go run user.go &"
+    command: "nohup go run main.go &"
   # Relation Database
   rdb:
     image: mysql:5.7
