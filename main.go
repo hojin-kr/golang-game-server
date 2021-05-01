@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gamejam/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/my/repo/models"
 )
 
 var redisClient *redis.Client
