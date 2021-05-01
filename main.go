@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"strconv"
@@ -12,19 +11,11 @@ import (
 	"github.com/my/repo/models"
 )
 
-var sqlDBClient *sql.DB
 var redisClient *redis.Client
 
 const port string = ":8888"
 
 func main() {
-	// sqldb
-	var err error
-	sqlDBClient, err = sql.Open("mysql", "app:1q2w3e4r@tcp(rdb:3306)/user")
-	if err != nil {
-		log.Println(err)
-	}
-	defer sqlDBClient.Close()
 	// redis
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     "redis:6379",
