@@ -12,14 +12,15 @@ services:
     command: "go build -v"
     command: "nohup go run main.go &"
   # Relation Database
-  rdb:
+  sqldb:
     image: mysql:5.7
     # Using named volumn (persistencse data store)
     volumes:
-     - rdb:/var/lib/mysql
+     - sqldb:/var/lib/mysql
+     - ./db:/tmp/mydb
     environment:
      MYSQL_ROOT_PASSWORD: 1q2w3e4r
-    # command: "database init"
+    # command: "mysql -uroot -p1q2w3e4r < /tmp/mydb/dump.sql"
   redis:
     image: redis:4.0.9
     volumes:
@@ -29,5 +30,5 @@ services:
 
 # def named volumn (persistencse data store)
 volumes:
-  rdb:
+  sqldb:
   redis:

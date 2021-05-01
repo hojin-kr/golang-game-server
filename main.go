@@ -46,7 +46,7 @@ func main() {
 		})
 	})
 	// Login user return game id
-	r.POST("/uesr/login", func(c *gin.Context) {
+	r.POST("/user/login", func(c *gin.Context) {
 		var user models.User
 		if err := c.ShouldBind(&user); err != nil {
 			c.String(http.StatusBadRequest, "bad request")
