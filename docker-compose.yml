@@ -3,14 +3,14 @@ version: "3.7"
 services:
   # Go lang
   app:
-    image: golang:1.14
-    volumes:
-     - ./:/home/app
-    working_dir: /home/app
+    image: hojindev/gamejam:1.0.0
+    # volumes:
+    #  - ./:/home/app
+    # working_dir: /home/app
     ports:
      - "8888:8888"
-    command: "go build -v"
-    command: "nohup go run main.go &"
+    # command: "go build -v"
+    # command: "nohup go run main.go &"
   # Relation Database
   # sqldb:
   #   image: mysql:5.7
