@@ -45,45 +45,6 @@ func main() {
 			"message": "pong",
 		})
 	})
-	// Login user return game id
-	r.POST("/user/login", func(c *gin.Context) {
-		var user models.User
-		if err := c.ShouldBind(&user); err != nil {
-			c.String(http.StatusBadRequest, "bad request")
-			return
-		}
-		row := sqlDBClient.QueryRow("SELECT id, platform_id, platform, device_id from user where platform_id = ? AND platform = ?", user.PlatformID, user.Platform)
-		row.Scan(&user.ID, &user.PlatformID, &user.Platform, &user.DeviceID)
-		if user.ID == 0 {
-			// sign up
-			rs, err := sqlDBClient.Exec("INSERT INTO user(platform_id, platform, device_id) VALUES (?, ?, ?)", user.PlatformID, user.Platform, user.DeviceID)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			id, err := rs.LastInsertId()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			user.ID = int(id)
-		}
-		c.JSON(http.StatusOK, user)
-	})
-	// ChangePlatfrom change platform
-	r.POST("/user/changeplatfrom", func(c *gin.Context) {
-		var user models.User
-		if err := c.ShouldBind(&user); err != nil {
-			c.String(http.StatusBadRequest, "bad request")
-			return
-		}
-		if user.ID != 0 {
-			rs, err := sqlDBClient.Exec("UPDATE user SET platform_id = ?, platform = ? WHERE id = ? AND device_id = ?", user.PlatformID, user.Platform, user.ID, user.DeviceID)
-			if err != nil || rs == nil {
-				c.JSON(http.StatusBadRequest, err)
-				return
-			}
-		}
-		c.JSON(http.StatusOK, user)
-	})
 	// stage start
 	r.POST("/stage/start", func(c *gin.Context) {
 		var stage models.Stage
@@ -138,31 +99,6 @@ func main() {
 		stage.Try = try
 		stage.Clear = clear
 		c.JSON(http.StatusOK, stage)
-	})
-	// user rank incr
-	r.POST("/rank/incr", func(c *gin.Context) {
-		var rank models.Rank
-		if err := c.ShouldBind(&rank); err != nil {
-			c.String(http.StatusBadRequest, "bad request")
-			return
-		}
-		err := redisClient.ZIncrBy("rank", rank.Score, strconv.Itoa(rank.ID)).Err()
-		if err != nil {
-			panic(err)
-		}
-		ranks, err := redisClient.ZRevRangeWithScores("rank", 0, 500).Result()
-		if err != nil {
-			panic(err)
-		}
-		c.JSON(http.StatusOK, ranks)
-	})
-	// user rank get
-	r.POST("/rank/get", func(c *gin.Context) {
-		ranks, err := redisClient.ZRevRangeWithScores("rank", 0, 500).Result()
-		if err != nil {
-			panic(err)
-		}
-		c.JSON(http.StatusOK, ranks)
 	})
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
