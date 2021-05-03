@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gamejam/models"
@@ -17,7 +18,7 @@ const port string = ":8888"
 func main() {
 	// redis
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
+		Addr:     os.Getenv("REDIS"),
 		Password: "",
 		DB:       0,
 	})
