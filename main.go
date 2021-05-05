@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gamejam/models"
@@ -18,7 +17,8 @@ const port string = ":8888"
 func main() {
 	// redis
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS"),
+		Addr: "redis:6379",
+		// Addr:     os.Getenv("REDIS"),
 		Password: "",
 		DB:       0,
 	})
@@ -47,12 +47,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		log.Println(stage.ID)
-		tryStages, err := redisClient.ZRevRangeWithScores("stage:try", 0, -1).Result()
-		if err != nil {
-			panic(err)
-		}
-		c.JSON(http.StatusOK, tryStages)
+		c.JSON(http.StatusOK, true)
 	})
 	// stage clear
 	r.POST("/stage/clear", func(c *gin.Context) {
@@ -66,11 +61,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		clearStages, err := redisClient.ZRevRangeWithScores("stage:clear", 0, -1).Result()
-		if err != nil {
-			panic(err)
-		}
-		c.JSON(http.StatusOK, clearStages)
+		c.JSON(http.StatusOK, true)
 	})
 	// stage info get
 	r.POST("/stage/get", func(c *gin.Context) {
@@ -87,9 +78,25 @@ func main() {
 		if err != nil {
 			clear = 0
 		}
-		stage.Try = try
-		stage.Clear = clear
+		stage.TryCnt = try
+		stage.ClearCnt = clear
 		c.JSON(http.StatusOK, stage)
+	})
+	// stage all start count
+	r.POST("/stage/get/startall", func(c *gin.Context) {
+		tryStages, err := redisClient.ZRevRangeWithScores("stage:try", 0, -1).Result()
+		if err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, tryStages)
+	})
+	// stage all clear count
+	r.POST("/stage/get/clearall", func(c *gin.Context) {
+		clearStages, err := redisClient.ZRevRangeWithScores("stage:clear", 0, -1).Result()
+		if err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, clearStages)
 	})
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
