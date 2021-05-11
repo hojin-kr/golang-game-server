@@ -17,9 +17,11 @@
     <div id="dashboard" class="">
       <table id="dashboard-table" class="table table-dark table-hover table-striped">
         <tr>
-          <th class='col'>#</th>
-          <th class='col'>ID</th>
-          <th class='col'>Score</th>
+          <th class='col'>스테이지</th>
+          <th class='col'>도전 횟수</th>
+          <th class='col'>성공 횟수</th>
+          <th class='col'>성공율</th>
+          <th class='col'>스테이지 비중</th>
         </tr>
       </table>
     </div>
@@ -31,16 +33,32 @@
   let page = searchParams.get('Page');
   leaderboard()
   function leaderboard() {
+    let data = []
+    let startTotal = 0;
     $.ajax({
         method: "POST",
-        url: "http://localhost:8888/getleaderboard"
+        url: "http://localhost:8888/stage/get/startall"
       })
-        .done(function( msg ) {
-          rows = ""
-          msg.forEach((item, i) => {
-            rows += "<tr><td>" + (i + 1) + "</td><td>" + item.Member + "</td><td>" + item.Score + "</td>"
+        .done(function( res ) {
+          res.forEach((item, i) => {
+            startTotal += item.Score
+            data[item.Member] = {'start' : item.Score, 'clear': 0};
           });
-          $('#dashboard-table').append(rows)
-        });
+          $.ajax({
+              method: "POST",
+              url: "http://localhost:8888/stage/get/clearall"
+            })
+              .done(function( res ) {
+                res.forEach((item, i) => {
+                  data[item.Member]['clear'] = item.Score
+                });
+                rows = ""
+                data.forEach((item, i) => {
+                  rows += "<tr><td>" + i + "</td><td>" + item.start + "</td><td>" + item.clear + "</td><td>" + (item.clear*(100/item.start)).toFixed(0) + "% </td><td>" + (item.start / startTotal * 100).toFixed(2) + "% </td>"
+                });
+                $('#dashboard-table').append(rows)
+          });
+    });
+
   }
 </script>
