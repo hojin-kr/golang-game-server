@@ -98,5 +98,20 @@ func main() {
 		}
 		c.JSON(http.StatusOK, clearStages)
 	})
+	// stage get all
+	r.POST("/stage/get/all", func(c *gin.Context) {
+		tryStages, err := redisClient.ZRevRangeWithScores("stage:try", 0, -1).Result()
+		if err != nil {
+			panic(err)
+		}
+		clearStages, err := redisClient.ZRevRangeWithScores("stage:clear", 0, -1).Result()
+		if err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"start": tryStages,
+			"clear": clearStages,
+		})
+	})
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
