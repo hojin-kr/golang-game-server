@@ -113,5 +113,17 @@ func main() {
 			"clear": clearStages,
 		})
 	})
+	// stage info del
+	r.POST("/stage/del", func(c *gin.Context) {
+		err := redisClient.Del("stage:try").Err()
+		if err != nil {
+			panic(err)
+		}
+		err = redisClient.Del("stage:clear").Err()
+		if err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, true)
+	})
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
