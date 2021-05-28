@@ -37,7 +37,7 @@
     let startTotal = 0;
     $.ajax({
         method: "POST",
-        url: "http://localhost:8888/stage/get/startall"
+        url: "https://container-service-1.29t1v2cn53l8a.ap-northeast-2.cs.amazonlightsail.com/stage/get/startall"
       })
         .done(function( res ) {
           res.forEach((item, i) => {
@@ -46,7 +46,7 @@
           });
           $.ajax({
               method: "POST",
-              url: "http://localhost:8888/stage/get/clearall"
+              url: "https://container-service-1.29t1v2cn53l8a.ap-northeast-2.cs.amazonlightsail.com/stage/get/clearall"
             })
               .done(function( res ) {
                 res.forEach((item, i) => {

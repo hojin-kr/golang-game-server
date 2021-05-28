@@ -125,5 +125,26 @@ func main() {
 		}
 		c.JSON(http.StatusOK, true)
 	})
+	// set balance
+	r.POST("/balance/set", func(c *gin.Context) {
+		var data models.Balance
+		if err := c.ShouldBind(&data); err != nil {
+			c.String(http.StatusBadRequest, "bad request")
+			return
+		}
+		err := redisClient.Set("balance", data.Data, 0).Err()
+		if err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, true)
+	})
+	// get balance
+	r.POST("/balance/get", func(c *gin.Context) {
+		data, err := redisClient.Get("balance").Result()
+		if err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, data)
+	})
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
