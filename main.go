@@ -9,6 +9,7 @@ import (
 	"github.com/gamejam/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
+	"encoding/json"
 )
 
 var redisClient *redis.Client
@@ -144,7 +145,9 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		c.JSON(http.StatusOK, data)
+		res := models.Balances{}
+		json.Unmarshal([]byte(data), &res)
+		c.JSON(http.StatusOK, res)
 	})
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
