@@ -13,7 +13,7 @@ type Balance struct {
 }
 
 type BalanceData struct {
-	Key int `json:"key"`
+	Key string `json:"key"`
 	Hp float64 `json:"hp"`
 	Power float64 `json:"power"`
 	Defense float64 `json:"defense"`
@@ -22,6 +22,6 @@ type BalanceData struct {
 }
 
 type Balances struct {
-	Unit  map[int]BalanceData `json:"unit"`
-	Poker map[int]BalanceData `json:"poker"`
+	Unit  map[string]BalanceData `json:"unit"`
+	Poker map[string]BalanceData `json:"poker"`
 }
