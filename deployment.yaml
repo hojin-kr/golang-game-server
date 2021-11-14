@@ -1,0 +1,24 @@
+# Deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # deployment unique name
+  name: app1
+  namespace: app1
+spec:
+  # Used for identification in other resources
+  selector:
+    matchLabels:
+      app: app1
+  # Define the number of pod replicase
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: app1
+    spec:
+      containers:
+      - name: ranking
+        image: ghcr.io/hojin-kr/ranking:0.0.1
+        ports:
+        - containerPort: 80
